@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>今天你开麦了吗！· Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --acc:#E85D04;--acc2:#B45C00;--acc3:#FF4500;
+  --gold:#FFD600;
+  --bg:#0A0A0A;--bg2:#141414;--bg3:#1E1E1E;
+  --text:#F5F5F5;--text2:#999;--text3:#555;
+  --border:rgba(255,255,255,0.07);
+  --green:#00C853;--green2:rgba(0,200,83,0.12);
+}
+html,body{height:100%;background:#111;color:var(--text);font-family:'Nunito',sans-serif;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;}
+@media(max-width:500px){body{background:var(--bg);display:block;}.phone-wrap{padding:0;}.app{border-radius:0!important;box-shadow:none!important;height:100vh!important;}}
+.phone-wrap{padding:32px 20px;display:flex;align-items:center;justify-content:center;min-height:100vh;width:100%;background:radial-gradient(ellipse at center,#1a1008 0%,#060606 70%);}
+.app{width:390px;max-width:calc(100vw - 40px);height:min(844px,92vh);border-radius:48px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);box-shadow:0 40px 100px rgba(0,0,0,0.8),0 0 0 10px #1A1A1A,0 0 0 12px #333,0 0 0 13px #111;flex-shrink:0;position:relative;}
+
+/* ── 屏幕切换 ── */
+.screen{display:none;flex-direction:column;overflow:hidden;background:var(--bg);}
+.screen.active{display:flex;position:absolute;inset:0;}
+
+/* ══════════════════════════════════════
+   S0: 抖音精选视频页（模拟）
+══════════════════════════════════════ */
+#s0{background:#000;position:relative;height:100%;}
+.video-bg{position:absolute;inset:0;background:linear-gradient(180deg,#1A0E00 0%,#0D0D0D 40%,#000 100%);}
+
+/* 顶部导航 */
+.dy-topbar{position:absolute;top:0;left:0;right:0;padding:52px 16px 12px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.dy-tabs{display:flex;gap:20px;}
+.dy-tab{font-size:15px;font-weight:700;color:rgba(255,255,255,0.45);}
+.dy-tab.active{font-size:16px;font-weight:900;color:#fff;border-bottom:2px solid #fff;padding-bottom:2px;}
+.dy-search{font-size:18px;color:rgba(255,255,255,0.7);}
+
+/* 视频内容区 */
+.video-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 0 150px 16px;}
+.video-author{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.author-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--gold));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#000;border:2px solid #fff;}
+.author-name{font-size:13px;font-weight:800;color:#fff;}
+.author-follow{background:var(--acc);color:#fff;font-size:10px;font-weight:900;padding:3px 8px;border-radius:100px;margin-left:4px;}
+.video-title{font-size:14px;font-weight:700;color:#fff;line-height:1.6;margin-bottom:8px;max-width:280px;}
+.video-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.video-tag{font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);}
+
+/* 右侧互动栏 */
+.dy-sidebar{position:absolute;right:12px;bottom:170px;display:flex;flex-direction:column;align-items:center;gap:18px;}
+.dy-action{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.dy-action-icon{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.dy-action-num{font-size:10px;font-weight:800;color:rgba(255,255,255,0.7);}
+
+/* 🎯 开麦快捷按钮 */
+.kamai-btn{position:absolute;right:12px;bottom:600px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;z-index:20;}
+.kamai-btn-inner{width:50px;height:50px;border-radius:16px;background:linear-gradient(135deg,var(--acc),var(--gold));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 20px rgba(232,93,4,0.5);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(232,93,4,0.5);}50%{box-shadow:0 4px 30px rgba(232,93,4,0.8),0 0 0 8px rgba(232,93,4,0.1);}}
+.kamai-btn-lbl{font-size:10px;font-weight:900;color:var(--gold);letter-spacing:0.05em;text-shadow:0 1px 4px rgba(0,0,0,0.8);}
+
+/* 底部进度条 */
+.dy-progress{position:absolute;bottom:110px;left:16px;right:16px;}
+.dy-prog-bar{height:2px;background:rgba(255,255,255,0.2);border-radius:2px;overflow:hidden;}
+.dy-prog-fill{height:100%;width:38%;background:#fff;border-radius:2px;}
+.dy-prog-time{display:flex;justify-content:space-between;margin-top:5px;}
+.dy-prog-t{font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);}
+
+/* 底部导航 */
+.dy-nav{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-around;padding-bottom:18px;}
+.dy-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.dy-nav-icon{font-size:22px;}
+.dy-nav-lbl{font-size:9px;font-weight:800;color:rgba(255,255,255,0.5);}
+.dy-nav-item.active .dy-nav-lbl{color:#fff;}
+
+/* ══════════════════════════════════════
+   S1: 开麦语音页
+══════════════════════════════════════ */
+#s1{background:var(--bg);}
+.km-header{padding:52px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.km-back{font-size:20px;color:var(--text2);background:none;border:none;cursor:pointer;}
+.km-header-info{flex:1;}
+.km-header-title{font-size:16px;font-weight:900;color:var(--text);}
+.km-header-sub{font-size:11px;font-weight:700;color:var(--text3);margin-top:2px;}
+
+.km-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:24px 20px 32px;}
+
+/* 视频引用卡 */
+.km-video-ref{width:100%;background:var(--bg2);border-radius:14px;padding:12px 14px;border-left:3px solid var(--acc);display:flex;gap:10px;align-items:flex-start;}
+.km-video-thumb{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#1A0E00,#3D1F00);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.km-video-info{flex:1;}
+.km-video-label{font-size:9px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--acc2);margin-bottom:3px;}
+.km-video-title{font-size:12px;font-weight:800;color:var(--text);line-height:1.4;}
+
+/* 波形动画区 */
+.km-wave-area{display:flex;flex-direction:column;align-items:center;gap:16px;flex:1;justify-content:center;}
+.km-wave{display:flex;align-items:center;gap:4px;height:60px;}
+.wave-bar{width:4px;border-radius:4px;background:var(--acc);animation:wave 0.8s ease-in-out infinite;}
+.wave-bar:nth-child(1){animation-delay:0s;}
+.wave-bar:nth-child(2){animation-delay:0.1s;}
+.wave-bar:nth-child(3){animation-delay:0.2s;}
+.wave-bar:nth-child(4){animation-delay:0.3s;}
+.wave-bar:nth-child(5){animation-delay:0.4s;}
+.wave-bar:nth-child(6){animation-delay:0.3s;}
+.wave-bar:nth-child(7){animation-delay:0.2s;}
+.wave-bar:nth-child(8){animation-delay:0.1s;}
+.wave-bar:nth-child(9){animation-delay:0s;}
+@keyframes wave{0%,100%{height:8px;opacity:0.3;}50%{height:50px;opacity:1;}}
+.km-wave.idle .wave-bar{animation:none;height:8px;opacity:0.2;}
+
+.km-status{font-size:14px;font-weight:800;color:var(--text2);text-align:center;}
+.km-timer{font-size:32px;font-weight:900;color:var(--text);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+
+/* 提示词 */
+.km-prompt{width:100%;background:var(--bg2);border-radius:12px;padding:12px 14px;border:1px solid var(--border);}
+.km-prompt-lbl{font-size:9px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.km-prompt-text{font-size:12px;font-weight:700;color:var(--text2);line-height:1.7;}
+.km-prompt-text em{font-style:normal;color:var(--acc);}
+
+/* 录音按钮 */
+.km-record-area{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;}
+.km-record-btn{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--gold));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 6px 24px rgba(232,93,4,0.5);transition:transform 0.15s;}
+.km-record-btn:active{transform:scale(0.93);}
+.km-record-btn.recording{background:linear-gradient(135deg,#FF1744,#FF6D00);animation:recPulse 1s infinite;}
+@keyframes recPulse{0%,100%{box-shadow:0 6px 24px rgba(255,23,68,0.5);}50%{box-shadow:0 6px 32px rgba(255,23,68,0.8),0 0 0 12px rgba(255,23,68,0.1);}}
+.km-record-hint{font-size:12px;font-weight:700;color:var(--text3);}
+.km-submit-btn{width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;padding:14px;border:none;border-radius:14px;cursor:pointer;display:none;box-shadow:0 4px 16px rgba(232,93,4,0.4);}
+.km-submit-btn.show{display:block;}
+
+/* ══════════════════════════════════════
+   S2: AI点评 + 笔记页
+══════════════════════════════════════ */
+#s2{background:var(--bg);overflow-y:auto;}
+#s2::-webkit-scrollbar{width:0;}
+.result-header{padding:52px 20px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);z-index:5;}
+.result-header-title{font-size:16px;font-weight:900;color:var(--text);}
+.result-xp{background:rgba(232,93,4,0.12);border:1px solid rgba(232,93,4,0.25);border-radius:100px;padding:4px 12px;font-size:11px;font-weight:900;color:var(--acc);}
+
+.result-body{padding:16px 16px 32px;display:flex;flex-direction:column;gap:12px;}
+
+/* 夸赞卡 */
+.praise-card{background:var(--green2);border:1px solid rgba(0,200,83,0.2);border-radius:14px;padding:14px 16px;}
+.praise-label{font-size:9px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.praise-body{font-size:13px;font-weight:700;color:var(--text);line-height:1.8;}
+
+/* 补缺卡 */
+.gap-card{background:rgba(232,93,4,0.05);border:1px solid rgba(232,93,4,0.15);border-radius:14px;padding:14px 16px;}
+.gap-label{font-size:9px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--acc);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.gap-item{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.gap-item:last-child{border:none;padding-bottom:0;}
+.gap-dot{width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0;margin-top:6px;}
+.gap-text{font-size:12px;font-weight:700;color:var(--text2);line-height:1.6;}
+
+/* 思维导图卡 */
+.mindmap-card{background:var(--bg2);border-radius:14px;padding:14px 16px;border:1px solid var(--border);}
+.mindmap-label{font-size:9px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:5px;}
+.mindmap-center{text-align:center;margin-bottom:12px;}
+.mindmap-node-main{display:inline-block;background:linear-gradient(135deg,var(--acc),var(--gold));color:#000;font-size:12px;font-weight:900;padding:6px 16px;border-radius:100px;}
+.mindmap-branches{display:flex;flex-direction:column;gap:6px;}
+.mindmap-branch{display:flex;align-items:flex-start;gap:8px;}
+.branch-line{width:24px;height:1px;background:var(--acc2);margin-top:10px;flex-shrink:0;}
+.branch-content{flex:1;}
+.branch-title{font-size:11px;font-weight:900;color:var(--text);margin-bottom:2px;}
+.branch-sub{font-size:10px;font-weight:700;color:var(--text3);line-height:1.5;}
+
+/* 笔记存档提示 */
+.saved-bar{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.saved-icon{font-size:18px;}
+.saved-text{font-size:12px;font-weight:700;color:var(--text3);flex:1;line-height:1.5;}
+.saved-text em{font-style:normal;color:var(--text2);}
+.saved-action{font-size:11px;font-weight:800;color:var(--acc);white-space:nowrap;cursor:pointer;}
+
+/* 卡片题按钮 */
+.quiz-btn{width:100%;background:var(--bg2);border:1.5px solid rgba(232,93,4,0.3);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color 0.2s;}
+.quiz-btn:active{border-color:var(--acc);}
+.quiz-btn-icon{width:40px;height:40px;border-radius:12px;background:rgba(232,93,4,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.quiz-btn-text{flex:1;text-align:left;}
+.quiz-btn-title{font-size:13px;font-weight:900;color:var(--text);margin-bottom:2px;}
+.quiz-btn-sub{font-size:11px;font-weight:700;color:var(--text3);}
+.quiz-btn-arrow{font-size:16px;color:var(--text3);}
+
+.btn-back-home{width:100%;background:transparent;border:1px solid var(--border);color:var(--text3);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;padding:12px;border-radius:12px;cursor:pointer;}
+
+/* ══════════════════════════════════════
+   S3: 卡片题页
+══════════════════════════════════════ */
+#s3{background:var(--bg);}
+.quiz-header{padding:52px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.quiz-header-title{font-size:16px;font-weight:900;color:var(--text);flex:1;}
+.quiz-progress-text{font-size:12px;font-weight:800;color:var(--text3);}
+
+.quiz-body{flex:1;display:flex;flex-direction:column;padding:20px;gap:16px;overflow-y:auto;}
+.quiz-body::-webkit-scrollbar{width:0;}
+
+/* 进度条 */
+.quiz-prog-wrap{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.quiz-prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--gold));border-radius:2px;transition:width 0.4s ease;}
+
+/* 题目卡 */
+.quiz-q-card{background:var(--bg2);border-radius:16px;padding:20px;border:1px solid var(--border);}
+.quiz-q-type{font-size:9px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--acc2);margin-bottom:8px;}
+.quiz-q-text{font-size:15px;font-weight:900;color:var(--text);line-height:1.6;}
+
+/* 选项 */
+.quiz-options{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.15s;}
+.quiz-opt:active{transform:scale(0.98);}
+.quiz-opt.selected{border-color:var(--acc);background:rgba(232,93,4,0.06);}
+.quiz-opt.correct{border-color:var(--green);background:var(--green2);}
+.quiz-opt.wrong{border-color:#FF1744;background:rgba(255,23,68,0.06);}
+.quiz-opt-idx{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--text3);flex-shrink:0;}
+.quiz-opt.selected .quiz-opt-idx{border-color:var(--acc);color:var(--acc);}
+.quiz-opt.correct .quiz-opt-idx{border-color:var(--green);background:var(--green);color:#000;}
+.quiz-opt.wrong .quiz-opt-idx{border-color:#FF1744;background:#FF1744;color:#fff;}
+.quiz-opt-text{font-size:13px;font-weight:700;color:var(--text);flex:1;}
+
+/* AI点评 */
+.quiz-feedback{background:rgba(232,93,4,0.06);border:1px solid rgba(232,93,4,0.2);border-radius:12px;padding:12px 14px;display:none;}
+.quiz-feedback.show{display:block;}
+.quiz-feedback-lbl{font-size:9px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--acc);margin-bottom:6px;}
+.quiz-feedback-text{font-size:12px;font-weight:700;color:var(--text2);line-height:1.7;}
+
+.quiz-next-btn{width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;padding:14px;border:none;border-radius:14px;cursor:pointer;display:none;}
+.quiz-next-btn.show{display:block;}
+
+/* ══════════════════════════════════════
+   S4: 知识库页
+══════════════════════════════════════ */
+#s4{background:var(--bg);overflow-y:auto;}
+#s4::-webkit-scrollbar{width:0;}
+.lib-header{padding:52px 20px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--border);}
+.lib-title{font-size:20px;font-weight:900;color:var(--text);}
+.lib-count{font-size:12px;font-weight:800;color:var(--text3);}
+.lib-body{padding:14px 16px 32px;display:flex;flex-direction:column;gap:10px;}
+.lib-item{background:var(--bg2);border-radius:14px;padding:14px 16px;border:1px solid var(--border);cursor:pointer;}
+.lib-item-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.lib-item-title{font-size:13px;font-weight:900;color:var(--text);flex:1;line-height:1.4;}
+.lib-item-date{font-size:10px;font-weight:700;color:var(--text3);margin-left:8px;flex-shrink:0;}
+.lib-item-preview{font-size:11px;font-weight:700;color:var(--text3);line-height:1.6;}
+.lib-item-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.lib-item-tag{background:rgba(232,93,4,0.08);border:1px solid rgba(232,93,4,0.15);border-radius:100px;padding:2px 9px;font-size:10px;font-weight:700;color:var(--acc2);}
+.lib-back{width:calc(100% - 32px);margin:0 16px 20px;background:transparent;border:1px solid var(--border);color:var(--text3);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;padding:12px;border-radius:12px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+<div class="app" id="app">
+
+<!-- ══════════════════════════════════════
+     S0: 抖音精选 视频页
+══════════════════════════════════════ -->
+<div class="screen active" id="s0">
+  <div class="video-bg"></div>
+
+  <!-- 顶部导航 -->
+  <div class="dy-topbar">
+    <div class="dy-tabs">
+      <div class="dy-tab">关注</div>
+      <div class="dy-tab active">精选</div>
+      <div class="dy-tab">推荐</div>
+    </div>
+    <div class="dy-search">🔍</div>
+  </div>
+
+  <!-- 视频内容 -->
+  <div class="video-content">
+    <div class="video-author">
+      <div class="author-avatar">可</div>
+      <div class="author-name">可可keer</div>
+      <div class="author-follow">+ 关注</div>
+    </div>
+    <div class="video-title">【深度讲解】费曼学习法到底是什么？为什么你学了还是记不住？我用了三个月才真正搞明白这件事</div>
+    <div class="video-tags">
+      <span class="video-tag">#学习方法</span>
+      <span class="video-tag">#费曼学习法</span>
+      <span class="video-tag">#考研备考</span>
+    </div>
+  </div>
+
+  <!-- 🎯 开麦快捷入口 -->
+  <div class="kamai-btn" onclick="goTo(1)">
+    <div class="kamai-btn-inner">🎤</div>
+    <div class="kamai-btn-lbl">开麦</div>
+  </div>
+
+  <!-- 右侧互动栏 -->
+  <div class="dy-sidebar">
+    <div class="dy-action"><div class="dy-action-icon">❤️</div><div class="dy-action-num">4.2万</div></div>
+    <div class="dy-action"><div class="dy-action-icon">💬</div><div class="dy-action-num">892</div></div>
+    <div class="dy-action"><div class="dy-action-icon">⭐</div><div class="dy-action-num">1.1万</div></div>
+    <div class="dy-action"><div class="dy-action-icon">↗️</div><div class="dy-action-num">转发</div></div>
+  </div>
+
+  <!-- 进度条 -->
+  <div class="dy-progress">
+    <div class="dy-prog-bar"><div class="dy-prog-fill"></div></div>
+    <div class="dy-prog-time">
+      <span class="dy-prog-t">04:23</span>
+      <span class="dy-prog-t">11:45</span>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <div class="dy-nav">
+    <div class="dy-nav-item"><div class="dy-nav-icon">🏠</div><div class="dy-nav-lbl">首页</div></div>
+    <div class="dy-nav-item"><div class="dy-nav-icon">🔍</div><div class="dy-nav-lbl">搜索</div></div>
+    <div class="dy-nav-item"><div class="dy-nav-icon">➕</div><div class="dy-nav-lbl"></div></div>
+    <div class="dy-nav-item active"><div class="dy-nav-icon">⭐</div><div class="dy-nav-lbl" style="color:#fff;">精选</div></div>
+    <div class="dy-nav-item"><div class="dy-nav-icon">👤</div><div class="dy-nav-lbl">我的</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S1: 开麦语音页
+══════════════════════════════════════ -->
+<div class="screen" id="s1">
+  <div class="km-header">
+    <button class="km-back" onclick="goTo(0)">←</button>
+    <div class="km-header-info">
+      <div class="km-header-title">今天你开麦了吗！</div>
+      <div class="km-header-sub">说出你学到的 · AI帮你点评+生成笔记</div>
+    </div>
+  </div>
+
+  <div class="km-body">
+
+    <!-- 视频引用 -->
+    <div class="km-video-ref">
+      <div class="km-video-thumb">▶</div>
+      <div class="km-video-info">
+        <div class="km-video-label">正在看的视频</div>
+        <div class="km-video-title">【深度讲解】费曼学习法到底是什么？为什么你学了还是记不住？</div>
+      </div>
+    </div>
+
+    <!-- 波形 + 计时 -->
+    <div class="km-wave-area">
+      <div class="km-wave idle" id="km-wave">
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      </div>
+      <div class="km-timer" id="km-timer">00:00</div>
+      <div class="km-status" id="km-status">点击麦克风开始说</div>
+    </div>
+
+    <!-- 提示词 -->
+    <div class="km-prompt">
+      <div class="km-prompt-lbl">可以说什么？</div>
+      <div class="km-prompt-text">
+        说说<em>视频讲了什么</em>，你学到了什么，或者<em>你自己的感想</em>——不用完整，随口说就行
+      </div>
+    </div>
+
+    <!-- 录音按钮 -->
+    <div class="km-record-area">
+      <button class="km-record-btn" id="km-btn" onclick="toggleRecord()">🎤</button>
+      <div class="km-record-hint" id="km-hint">按住说话，或点击开始</div>
+      <button class="km-submit-btn" id="km-submit" onclick="goToResult()">✓ 完成，AI帮我点评</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S2: AI点评 + 笔记页
+══════════════════════════════════════ -->
+<div class="screen" id="s2">
+  <div class="result-header">
+    <button class="km-back" onclick="goTo(0)">←</button>
+    <div class="result-header-title">AI 点评 · 今日笔记</div>
+    <div class="result-xp">+100 XP 🎉</div>
+  </div>
+
+  <div class="result-body">
+
+    <!-- 夸赞 -->
+    <div class="praise-card">
+      <div class="praise-label">✅ 你说对了的地方</div>
+      <div class="praise-body">
+        你准确抓住了费曼学习法的核心——「能用自己的话讲出来才算真正学会」。你提到的「复述」和「找知识漏洞」两个步骤理解得很到位，说明你认真看了视频并且真正思考了。👍
+      </div>
+    </div>
+
+    <!-- 补缺 -->
+    <div class="gap-card">
+      <div class="gap-label">🔍 AI 补充 · 你遗漏的关键点</div>
+      <div class="gap-item"><div class="gap-dot"></div><div class="gap-text">费曼学习法共四步：选概念 → 教给别人 → <strong style="color:var(--text);">找到卡壳的地方</strong> → 回到原材料补充——你提到了第二步，但漏掉了第三步「卡壳」是关键触发器</div></div>
+      <div class="gap-item"><div class="gap-dot"></div><div class="gap-text">「简化语言」不只是把话说简单，而是要能用<strong style="color:var(--text);">类比和具体例子</strong>解释抽象概念，这是费曼特别强调的部分</div></div>
+      <div class="gap-item"><div class="gap-dot"></div><div class="gap-text">视频里还提到：费曼法的本质是<strong style="color:var(--text);">主动提取记忆</strong>，比被动重读效率高3倍——这个数据你没有提到</div></div>
+    </div>
+
+    <!-- 思维导图 -->
+    <div class="mindmap-card">
+      <div class="mindmap-label">🗺️ 思维导图 · 已生成</div>
+      <div class="mindmap-center">
+        <div class="mindmap-node-main">费曼学习法</div>
+      </div>
+      <div class="mindmap-branches">
+        <div class="mindmap-branch">
+          <div class="branch-line"></div>
+          <div class="branch-content">
+            <div class="branch-title">① 选一个概念</div>
+            <div class="branch-sub">选你想真正理解的知识点</div>
+          </div>
+        </div>
+        <div class="mindmap-branch">
+          <div class="branch-line"></div>
+          <div class="branch-content">
+            <div class="branch-title">② 教给一个小学生</div>
+            <div class="branch-sub">用最简单的语言解释，找类比</div>
+          </div>
+        </div>
+        <div class="mindmap-branch">
+          <div class="branch-line"></div>
+          <div class="branch-content">
+            <div class="branch-title">③ 找到卡壳的地方 ⚡</div>
+            <div class="branch-sub">说不清楚=真正没懂，这是关键</div>
+          </div>
+        </div>
+        <div class="mindmap-branch">
+          <div class="branch-line"></div>
+          <div class="branch-content">
+            <div class="branch-title">④ 回去补充+简化</div>
+            <div class="branch-sub">主动提取比被动重读效率高3倍</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 已存入知识库 -->
+    <div class="saved-bar">
+      <div class="saved-icon">📚</div>
+      <div class="saved-text">笔记已存入<em>知识库</em>，随时查看回顾</div>
+      <div class="saved-action" onclick="goTo(4)">查看 →</div>
+    </div>
+
+    <!-- 卡片题入口 -->
+    <div class="quiz-btn" onclick="goTo(3)">
+      <div class="quiz-btn-icon">🃏</div>
+      <div class="quiz-btn-text">
+        <div class="quiz-btn-title">出题巩固 · 真正记住</div>
+        <div class="quiz-btn-sub">AI出3道卡片题，答完再次点评</div>
+      </div>
+      <div class="quiz-btn-arrow">›</div>
+    </div>
+
+    <button class="btn-back-home" onclick="goTo(0)">← 返回精选</button>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S3: 卡片题巩固页
+══════════════════════════════════════ -->
+<div class="screen" id="s3">
+  <div class="quiz-header">
+    <button class="km-back" onclick="goTo(2)">←</button>
+    <div class="quiz-header-title">出题巩固</div>
+    <div class="quiz-progress-text" id="quiz-prog-text">1 / 3</div>
+  </div>
+
+  <div class="quiz-body">
+    <div class="quiz-prog-wrap">
+      <div class="quiz-prog-fill" id="quiz-prog-fill" style="width:33%;"></div>
+    </div>
+
+    <div class="quiz-q-card">
+      <div class="quiz-q-type" id="quiz-q-type">单选题</div>
+      <div class="quiz-q-text" id="quiz-q-text">费曼学习法中，判断自己是否真正理解一个概念的关键信号是什么？</div>
+    </div>
+
+    <div class="quiz-options" id="quiz-options">
+      <div class="quiz-opt" onclick="selectOpt(this, false)">
+        <div class="quiz-opt-idx">A</div>
+        <div class="quiz-opt-text">能在脑海中回忆起视频的画面</div>
+      </div>
+      <div class="quiz-opt" onclick="selectOpt(this, false)">
+        <div class="quiz-opt-idx">B</div>
+        <div class="quiz-opt-text">能在笔记本上完整抄写知识点</div>
+      </div>
+      <div class="quiz-opt" onclick="selectOpt(this, true)">
+        <div class="quiz-opt-idx">C</div>
+        <div class="quiz-opt-text">向别人解释时，找到自己说不清楚的地方</div>
+      </div>
+      <div class="quiz-opt" onclick="selectOpt(this, false)">
+        <div class="quiz-opt-idx">D</div>
+        <div class="quiz-opt-text">把视频反复看了三遍以上</div>
+      </div>
+    </div>
+
+    <div class="quiz-feedback" id="quiz-feedback">
+      <div class="quiz-feedback-lbl">🤖 AI 点评</div>
+      <div class="quiz-feedback-text" id="quiz-feedback-text"></div>
+    </div>
+
+    <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()">下一题 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     S4: 知识库页
+══════════════════════════════════════ -->
+<div class="screen" id="s4">
+  <div class="lib-header">
+    <div class="lib-title">📚 我的知识库</div>
+    <div class="lib-count">共 6 条笔记</div>
+  </div>
+  <div class="lib-body">
+    <div class="lib-item" onclick="goTo(2)">
+      <div class="lib-item-top">
+        <div class="lib-item-title">费曼学习法 · 完整四步骤</div>
+        <div class="lib-item-date">今天</div>
+      </div>
+      <div class="lib-item-preview">你说对了：复述+找漏洞。补充：卡壳=真正没懂的触发器，主动提取比被动重读效率高3倍……</div>
+      <div class="lib-item-tags">
+        <span class="lib-item-tag">学习方法</span>
+        <span class="lib-item-tag">费曼</span>
+        <span class="lib-item-tag">记忆</span>
+      </div>
+    </div>
+    <div class="lib-item">
+      <div class="lib-item-top">
+        <div class="lib-item-title">间隔重复记忆法 · 艾宾浩斯</div>
+        <div class="lib-item-date">昨天</div>
+      </div>
+      <div class="lib-item-preview">复习要在快忘记的时候来，不是刚学完就复习。间隔效应和测试效应是两个不同的概念……</div>
+      <div class="lib-item-tags">
+        <span class="lib-item-tag">记忆科学</span>
+        <span class="lib-item-tag">备考</span>
+      </div>
+    </div>
+    <div class="lib-item">
+      <div class="lib-item-top">
+        <div class="lib-item-title">PREP结构 · 职场表达框架</div>
+        <div class="lib-item-date">6月5日</div>
+      </div>
+      <div class="lib-item-preview">先说结论再说理由。Point→Reason→Example→Point。你漏掉了Example举例这一步是关键……</div>
+      <div class="lib-item-tags">
+        <span class="lib-item-tag">职场</span>
+        <span class="lib-item-tag">表达</span>
+      </div>
+    </div>
+    <div class="lib-item">
+      <div class="lib-item-top">
+        <div class="lib-item-title">主动回忆 vs 被动重读</div>
+        <div class="lib-item-date">6月4日</div>
+      </div>
+      <div class="lib-item-preview">主动回忆效率比被动重读高3倍。测试自己比反复看笔记更有效……</div>
+      <div class="lib-item-tags">
+        <span class="lib-item-tag">学习科学</span>
+        <span class="lib-item-tag">考研</span>
+      </div>
+    </div>
+    <div class="lib-item">
+      <div class="lib-item-top">
+        <div class="lib-item-title">刻意练习 · 走出舒适区</div>
+        <div class="lib-item-date">6月3日</div>
+      </div>
+      <div class="lib-item-preview">刻意练习≠重复练习。要在拉伸区，不在舒适区，也不在恐慌区……</div>
+      <div class="lib-item-tags">
+        <span class="lib-item-tag">学习方法</span>
+        <span class="lib-item-tag">成长</span>
+      </div>
+    </div>
+    <div class="lib-item">
+      <div class="lib-item-top">
+        <div class="lib-item-title">凯恩斯主义 · 宏观经济核心</div>
+        <div class="lib-item-date">6月2日</div>
+      </div>
+      <div class="lib-item-preview">政府干预经济的理论基础。你说对了需求侧管理，但漏掉了乘数效应……</div>
+      <div class="lib-item-tags">
+        <span class="lib-item-tag">考研政经</span>
+        <span class="lib-item-tag">宏观经济</span>
+      </div>
+    </div>
+  </div>
+  <button class="lib-back" onclick="goTo(2)">← 返回点评</button>
+</div>
+
+</div><!-- app -->
+</div><!-- phone-wrap -->
+
+<script>
+// ── 页面切换 ──
+function goTo(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  // 进入开麦页时重置
+  if(n===1) resetRecord();
+}
+
+// ── 录音逻辑 ──
+let recording=false, timer=null, seconds=0;
+
+function resetRecord(){
+  recording=false;
+  seconds=0;
+  clearInterval(timer);
+  document.getElementById('km-timer').textContent='00:00';
+  document.getElementById('km-status').textContent='点击麦克风开始说';
+  document.getElementById('km-hint').textContent='按住说话，或点击开始';
+  document.getElementById('km-btn').classList.remove('recording');
+  document.getElementById('km-btn').textContent='🎤';
+  document.getElementById('km-wave').classList.add('idle');
+  document.getElementById('km-submit').classList.remove('show');
+}
+
+function toggleRecord(){
+  if(!recording){
+    recording=true;
+    document.getElementById('km-btn').classList.add('recording');
+    document.getElementById('km-btn').textContent='⏹';
+    document.getElementById('km-status').textContent='正在录音中...';
+    document.getElementById('km-hint').textContent='再次点击停止';
+    document.getElementById('km-wave').classList.remove('idle');
+    timer=setInterval(()=>{
+      seconds++;
+      const m=String(Math.floor(seconds/60)).padStart(2,'0');
+      const s=String(seconds%60).padStart(2,'0');
+      document.getElementById('km-timer').textContent=m+':'+s;
+    },1000);
+  } else {
+    recording=false;
+    clearInterval(timer);
+    document.getElementById('km-btn').classList.remove('recording');
+    document.getElementById('km-btn').textContent='🎤';
+    document.getElementById('km-status').textContent='录音完成 ✓';
+    document.getElementById('km-hint').textContent='可以继续补充，或直接提交';
+    document.getElementById('km-wave').classList.add('idle');
+    document.getElementById('km-submit').classList.add('show');
+  }
+}
+
+function goToResult(){
+  goTo(2);
+  // 滚到顶
+  const s2=document.getElementById('s2');
+  setTimeout(()=>s2.scrollTo(0,0),50);
+}
+
+// ── 卡片题逻辑 ──
+const QUESTIONS=[
+  {
+    type:'单选题',
+    q:'费曼学习法中，判断自己是否真正理解一个概念的关键信号是什么？',
+    opts:['能在脑海中回忆起视频的画面','能在笔记本上完整抄写知识点','向别人解释时，找到自己说不清楚的地方','把视频反复看了三遍以上'],
+    ans:2,
+    fb:'✅ 正确！说不清楚的地方=真正没懂的地方，这是费曼法最核心的洞察。找到「卡壳点」才能精准补缺，而不是重复已知的内容。'
+  },
+  {
+    type:'关键词描述',
+    q:'用一两句话描述：「主动回忆」和「被动重读」有什么区别？',
+    opts:['主动回忆是合上书自己回想，被动重读是反复看笔记','主动回忆效率更低，但更有成就感','两种方法效果相同，看个人习惯','被动重读适合考前冲刺'],
+    ans:0,
+    fb:'✅ 很好！主动回忆是「提取练习」，大脑主动检索信息时会强化记忆痕迹；被动重读只是「再次接触」，大脑没有真正努力工作。研究证明前者效率高3倍。'
+  },
+  {
+    type:'单选题',
+    q:'费曼学习法第三步"找到卡壳的地方"之后，正确的做法是？',
+    opts:['放弃这个知识点，说明太难了','重新把视频从头看一遍','针对卡壳的地方，回到原材料定向补充，然后重新尝试解释','把知识点背下来，不用理解'],
+    ans:2,
+    fb:'✅ 完全正确！定向补充>重头再来。卡壳的地方才是真正的知识缺口，精准补充这一块，然后再次尝试解释——这才是费曼法的学习闭环。'
+  }
+];
+let curQ=0;
+let answered=false;
+
+function renderQuestion(){
+  const q=QUESTIONS[curQ];
+  document.getElementById('quiz-q-type').textContent=q.type;
+  document.getElementById('quiz-q-text').textContent=q.q;
+  document.getElementById('quiz-prog-text').textContent=(curQ+1)+' / '+QUESTIONS.length;
+  document.getElementById('quiz-prog-fill').style.width=((curQ+1)/QUESTIONS.length*100)+'%';
+  const opts=document.getElementById('quiz-options');
+  opts.innerHTML=q.opts.map((o,i)=>`
+    <div class="quiz-opt" onclick="selectOpt(this,${i===q.ans},${i})">
+      <div class="quiz-opt-idx">${'ABCD'[i]}</div>
+      <div class="quiz-opt-text">${o}</div>
+    </div>
+  `).join('');
+  document.getElementById('quiz-feedback').classList.remove('show');
+  document.getElementById('quiz-next-btn').classList.remove('show');
+  answered=false;
+}
+
+function selectOpt(el, correct){
+  if(answered) return;
+  answered=true;
+  const q=QUESTIONS[curQ];
+  document.querySelectorAll('.quiz-opt').forEach((o,i)=>{
+    if(i===q.ans) o.classList.add('correct');
+  });
+  if(!correct) el.classList.add('wrong');
+  document.getElementById('quiz-feedback-text').textContent=q.fb;
+  document.getElementById('quiz-feedback').classList.add('show');
+  const nextBtn=document.getElementById('quiz-next-btn');
+  nextBtn.textContent=curQ<QUESTIONS.length-1?'下一题 →':'完成 · 返回笔记';
+  nextBtn.classList.add('show');
+}
+
+function nextQuestion(){
+  if(curQ<QUESTIONS.length-1){
+    curQ++;
+    renderQuestion();
+    document.querySelector('.quiz-body').scrollTo(0,0);
+  } else {
+    curQ=0;
+    goTo(2);
+  }
+}
+
+// 初始化
+renderQuestion();
+</script>
+</body>
+</html>
